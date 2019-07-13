@@ -1,0 +1,189 @@
+///////////////////////////////////////////////////////////////////////////////////////
+// SPACING HELPERS :: Padding & Margin :: over multiple breakpoints in both px and % //
+///////////////////////////////////////////////////////////////////////////////////////
+/*
+@version    1.0
+@access     public
+@author     Shawn Grundy <shawng058@gmail.com>
+@copyright  Copyright (c) 2019, Shawn Grundy
+@license    MIT License
+
+Credit for breakpoint mixins: https://glennmccomb.com/articles/useful-sass-scss-media-query-mixins-for-bootstrap/#the-entire-code
+(I believe the originals were authored by Hugo Giraudel)
+*/
+
+/*
+To see (or just copy) what this outputs, check out the pen:
+https://codepen.io/smg058/pen/NZVxLo
+*/
+
+// Breakpoint map based on bootstrap 4 breakpoints
+$breakpoints: (
+  xs: 578px,
+  sm: 768px,
+  md: 992px,
+  lg: 1200px
+);
+
+// Mixin: respond-above [min-width]
+@mixin respond-above($breakpoint) {
+
+  // If the breakpoint exists within the map
+  @if map-has-key($breakpoints, $breakpoint) {
+  
+    // Get the requested breakpoint value.
+    $breakpoint-value: map-get($breakpoints, $breakpoint);
+    
+    // Build the media query.
+    @media (min-width: $breakpoint-value) {
+      @content;
+    }
+  } @else {
+    // If the breakpoint doesn't exist, throw a warning.
+    @warn 'Invalid breakpoint requested: #{$breakpoint}.';
+  }
+}
+
+// Mixin: respond-below [max-width]
+@mixin respond-above($breakpoint) {
+
+  // If the breakpoint exists within the map
+  @if map-has-key($breakpoints, $breakpoint) {
+  
+    // Get the requested breakpoint value
+    $breakpoint-value: map-get($breakpoints, $breakpoint);
+    
+    // Build the media query
+    @media (max-width: ($breakpoint-value - 1)) {
+      @content;
+    }
+  } @else {
+    // if the requested breakpoint is invalid, throw a warning
+    @warn 'Invalid breakpoint requested: #{$breakpoint}.';
+  }
+}
+
+// Mixin: respond-between [min-width and max-width]
+@mixin respond-between($lower, $upper) {
+
+  // If both the lower and upper breakpoints exist within the map
+  @if map-has-key($breakpoints, $lower) and map-has-key($breakpoints, $upper) {
+  
+    // get the lower and upper breakpoint values.
+    $lower-breakpoint: map-get($breakpoints, $lower);
+    $upper-breakpoint: map-get($breakpoints, $upper);
+    
+    // Build the media query
+    @media (min-width: $lower-breakpoint) and (max-width: ($upper-breakpoint - 1)) {
+      @content;
+    }
+  } @else {
+    
+    // if one or both breakpoints are invalid
+    @if (map-has-key($breakpoints, $lower) == false) {
+      
+      // Log a warning
+      @warn 'The lower breakpoint you requested is invalid: #{$lower}.';
+    }
+    @if (map-has-key($breakpoints, $upper) == false) {
+    
+      // Log a warning
+      @warn 'The upper breakpoint you requested is invalid: #{$upper}.';
+    }
+  }
+}
+
+// Number map: 0-100 [Because why not?]
+$nm-0-100           : 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100;
+// Direction map with [dir(direction)][stub]
+$dirs               : top t, right r, bottom b, left l;
+// Breakpoint map with [scope][target]
+$bps                : sm xs, md sm, lg md;
+
+// Loops
+@each $space in $nm-0-100 {
+  // Variables
+  $px   : #{$space * 1px};
+  $pct  : #{$space * 1%};
+  
+  .p-#{$space} {
+    padding: #{$px};
+  }
+  .m-#{$space} {
+    margin: #{$px};
+  }
+  @if $space != 0 {
+    .p-pct-#{$space} {
+      padding: #{$pct};
+    }
+    .m-pct-#{$space} {
+      margin: #{$pct};
+    }
+  }
+}
+
+@each $dir, $stub in $dirs {
+  @each $space in $nm-0-100 {
+    // Variables
+    $px     : #{$space * 1px};
+    $pct    : #{$space * 1%};
+    
+    .p#{$stub}-#{$space} {
+      padding-#{$dir}: #{$px};
+    }
+    .m#{$stub}-#{$space} {
+      margin-#{$dir}: #{$px};
+    }
+    @if $space != 0 {
+      .p#{$stub}-pct-#{$space} {
+        padding-#{$dir}: #{$pct};
+      }
+      .m#{$stub}-pct-#{$space} {
+        margin-#{$dir}: #{$pct};
+      }
+    }
+  }
+}
+
+@each $scope, $target in $bps {
+  
+  @include respond-below(#{$scope}) {
+    @each $space in $nm-0-100 {
+      // variables
+      $px   : #{$space * 1px};
+      $pct  : #{$space * 1%};
+      
+      .p-#{$target}-#{$space} {
+        padding: #{$px};
+      }
+      .m-#{$target}-#{$space} {
+        margin: #{$px};
+      }
+      @if $space != 0 {
+        .p-#{$target}-pct-#{$space} {
+          padding: #{$pct};
+        }
+        .m-#{$target}-pct-#{$space} {
+          margin: #{$pct};
+        }
+      }
+      
+      @each $dir, $stub in $dirs {
+        
+        .p#{$stub}-#{$target}-#{$space} {
+          padding-#{$dir}: #{$px};
+        }
+        .m#{$stub}-#{$target}-#{$space} {
+          margin-#{$dir}: #{$px};
+        }
+        @if $space != 0 {
+          .p#{$stub}-#{$target}-pct-#{$space} {
+            padding-#{$dir}: #{$pct};
+          }
+          .m#{$stub}-#{$target}-pct-#{$space} {
+            margin-#
+        }
+      }
+    }
+  }
+}
